@@ -18,4 +18,39 @@ tasks:
     prompt: This will remove all unused containers, networks and images. Do you want to continue?
     cmds:
       - docker system prune -af
+
+  ssh-socket:up:
+    desc: "Enables socket to remote docker via SSH tunnel"
+    status:
+      - DOCKER_HOST="unix://{{ .LOCAL_DOCKER_SOCKET }}" docker ps
+    requires:
+      vars:
+        - SSH_HOST # username@server
+    vars:
+      LOCAL_DOCKER_SOCKET: '{{ .LOCAL_DOCKER_SOCKET | default "/var/run/docker-remote.sock" }}'
+      REMOTE_DOCKER_SOCKET: '{{ .REMOTE_DOCKER_SOCKET | default "/var/run/docker.sock" }}'
+      SSH_KEY: '{{ .SSH_KEY | default "~/.ssh/id_rsa" }}'
+    cmds:
+      - task: ssh-socket:down
+        vars:
+          LOCAL_DOCKER_SOCKET:
+            ref: .LOCAL_DOCKER_SOCKET
+      - sudo ssh -t -f -L "{{ .LOCAL_DOCKER_SOCKET }}:{{ .REMOTE_DOCKER_SOCKET }}" -N {{ .SSH_HOST }} -i {{ .SSH_KEY }}
+      - sudo chown root:docker "{{ .LOCAL_DOCKER_SOCKET }}"
+      - sudo chmod g+rw "{{ .LOCAL_DOCKER_SOCKET }}"
   
+  ssh-socket:down:
+    desc: "Disables the socket to remote docker via SSH tunnel"
+    requires:
+      vars:
+        - LOCAL_DOCKER_SOCKET
+    cmds:
+      - sudo pkill -f '{{ .LOCAL_DOCKER_SOCKET }}'
+      - test -S '{{ .LOCAL_DOCKER_SOCKET }}' && sudo rm '{{ .LOCAL_DOCKER_SOCKET }}' || true
+
+  ssh-socket:ps:
+    desc: "Run docker ps on a remote docker socket via SSH tunnel"
+    env:
+      DOCKER_HOST: "unix://{{ .LOCAL_DOCKER_SOCKET }}"
+    cmds:
+      - docker ps

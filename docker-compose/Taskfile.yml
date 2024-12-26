@@ -11,3 +11,73 @@ tasks:
     desc: Take down the service containers, through docker compose.
     cmds:
       - docker compose down
+  
+  pull:
+    dir: '{{ .USER_WORKING_DIR }}'
+    desc: Pull new Docker images corresponding to the service containers, through docker compose.
+    cmds:
+      - echo '{{ .USER_WORKING_DIR }}'
+      - docker compose pull
+
+  update:
+    dir: '{{ .USER_WORKING_DIR }}'
+    desc: Pull new Docker images corresponding to the service containers, then restart all containers.
+    cmds:
+      - task: pull
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
+      - task: down
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
+      - task: up
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
+  
+  _recursive:
+    desc: Runs a task on every folder containing a docker-compose yaml
+    platforms:
+      - linux
+    dir: '{{ .USER_WORKING_DIR }}'
+    internal: true
+    requires:
+      vars:
+        - taskname
+    vars:
+      services:
+        sh: find '{{ .USER_WORKING_DIR }}' \( -name 'docker-compose.yaml' -o -name 'docker-compose.yml' \)
+    cmds:
+      - for: { var: services }
+        task: '{{ .taskname }}'
+        vars:
+          USER_WORKING_DIR: '{{ osDir .ITEM }}'
+  
+  recursive:update:
+    desc: Updates and restarts all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: update
+
+  recursive:pull:
+    desc: Pulls all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: pull
+
+  recursive:up:
+    desc: Starts all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: up
+
+  recursive:down:
+    desc: Stops all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: down
