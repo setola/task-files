@@ -1,0 +1,18 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+  INSTALL_DIR: ~/taskfiles
+
+includes:
+  os: "{{ .INSTALL_DIR }}/os"
+  docker: "{{ .INSTALL_DIR }}/docker"
+  dc: "{{ .INSTALL_DIR }}/docker-compose"
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true

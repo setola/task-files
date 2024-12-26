@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+  prune:
+    desc: Clean docker system and volumes
+    cmds:
+      - task: prune:system
+      - task: prune:volumes
+
+  prune:volumes:
+    desc: Remove unused local volumes
+    prompt: This will remove all unused local volumes. Do you want to continue?
+    cmds:
+      - docker volume prune -f
+  
+  prune:system:
+    desc: Remove unused data
+    prompt: This will remove all unused containers, networks and images. Do you want to continue?
+    cmds:
+      - docker system prune -af
+  

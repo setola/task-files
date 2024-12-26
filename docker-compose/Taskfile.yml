@@ -1,0 +1,13 @@
+version: '3'
+tasks:
+  up:
+    dir: '{{ .USER_WORKING_DIR }}'
+    desc: Run a new service and related containers, through docker compose.
+    cmds:
+      - docker compose up -d
+
+  down:
+    dir: '{{ .USER_WORKING_DIR }}'
+    desc: Take down the service containers, through docker compose.
+    cmds:
+      - docker compose down

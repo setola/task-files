@@ -1,0 +1,48 @@
+version: '3'
+
+vars:
+  TASKFILE_REPO: git@github.com:setola/task-files.git
+  TASKFILE_ARCHIVE:
+  INSTALL_DIR: ~/task-files
+  GLOBAL_TASKFILE_PATH: ~/Taskfile.yml
+  ROOT_TASKFILE_PATH: '{{ .INSTALL_DIR }}/Taskfile.yml'
+
+tasks:
+  install:
+    cmds:
+      - task: _install_git
+      - task: _git_clone
+      - task: _install_global_taskfile
+  
+  _install_git:
+    internal: true
+    status:
+      - git --version
+    cmds:
+      - sudo apt-get install -y git
+  
+  _git_clone:
+    dir: '{{ .INSTALL_DIR }}'
+    internal: true
+    status:
+      - git status
+    cmds:
+      - mkdir -p {{ .INSTALL_DIR }}
+      - git clone {{ .TASKFILE_REPO }} .
+  
+  _install_from_git:
+    internal: true
+    cmds:
+      - task: _install_git
+      - task: _git_clone
+
+  _install_from_archive:
+    internal: true
+    cmds:
+      - curl -L '{{ .TASKFILE_ARCHIVE }}' | tar xf - -C '{{ .INSTALL_DIR }}'
+  
+  _install_global_taskfile:
+    internal: true
+    cmds:
+      - rm {{ .GLOBAL_TASKFILE_PATH }}
+      - ln -s {{ .ROOT_TASKFILE_PATH }} {{ .GLOBAL_TASKFILE_PATH }}
