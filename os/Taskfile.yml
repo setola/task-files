@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 tasks:
   update:
@@ -6,7 +6,14 @@ tasks:
     cmds:
       - sudo apt-get update
       - sudo apt-get upgrade -y
-      - sudo apt-get dist-upgrade -y 
-      - sudo apt-get autoclean -y 
-      - sudo apt-get autoremove -y 
+      - sudo apt-get dist-upgrade -y
+      - sudo apt-get autoclean -y
+      - sudo apt-get autoremove -y
       - sudo apt-get clean -y
+
+  sudo:nopasswd:
+    desc: Let your user sudo without asking for password
+    cmds:
+      - 'echo "${USER} ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers.d/${USER}'
+    status:
+      - 'grep "${USER} ALL=(ALL) NOPASSWD: ALL" /etc/sudoers.d/${USER}'
