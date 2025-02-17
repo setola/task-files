@@ -1,0 +1,55 @@
+version: "3"
+
+tasks:
+  expire-date:
+    desc: Check SSL certificate expiration date for DOMAIN
+    requires:
+      vars:
+        - DOMAIN
+    vars:
+      PORT: 443
+    cmds:
+      - echo -n Q | openssl s_client -servername {{ .DOMAIN }} -connect {{ .DOMAIN }}:{{ .PORT }} | openssl x509 -noout -dates
+
+  days-from-expiration-multiple:
+    desc: Count how many days remains from certificate expiration
+    dir: "{{ .USER_WORKING_DIR }}"
+    requires:
+      vars:
+        - DOMAIN_LIST_FILE
+    vars:
+      DOMAINS:
+        sh: cat {{ .DOMAIN_LIST_FILE }}
+    cmds:
+      - for:
+          var: DOMAINS
+        task: days-from-expiration
+        vars:
+          DOMAIN: "{{ .ITEM }}"
+
+  days-from-expiration:
+    desc: Count how many days remains from certificate expiration for DOMAIN
+    silent: true
+    requires:
+      vars:
+        - DOMAIN
+    vars:
+      CERTIFICATE_FILE:
+        sh: mktemp -t ssl-expiration-dates-{{ .DOMAIN }}-XXXXXXXXXXXX.txt
+      CERT:
+        sh: |
+          echo -n \
+          | openssl s_client -servername "{{ .DOMAIN }}" -connect "{{ .DOMAIN }}":443 2>/dev/null \
+          | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' \
+          > {{ .CERTIFICATE_FILE }}
+      DATE:
+        sh: openssl x509 -in {{ .CERTIFICATE_FILE }} -enddate -noout | sed "s/.*=\(.*\)/\1/"
+      DATE_S:
+        sh: date -d "{{ .DATE }}" +%s
+      NOW_S:
+        sh: date -d now +%s
+      DIFF:
+        sh: echo $(( ( {{ .DATE_S }} - {{ .NOW_S }}) / 86400 ))
+    cmds:
+      - defer: rm {{ .CERTIFICATE_FILE }}
+      - echo "{{ .DIFF }} - {{ .DOMAIN }}"
