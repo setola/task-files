@@ -1,18 +1,19 @@
 # https://taskfile.dev
 
-version: '3'
+version: "3"
 
 vars:
   GREETING: Hello, World!
-  INSTALL_DIR: ~/taskfiles
+  INSTALL_DIR: ${PWD}
 
 includes:
   os: "{{ .INSTALL_DIR }}/os"
   docker: "{{ .INSTALL_DIR }}/docker"
   dc: "{{ .INSTALL_DIR }}/docker-compose"
+  ssl: "{{ .INSTALL_DIR }}/ssl"
 
 tasks:
   default:
     cmds:
-      - echo "{{.GREETING}}"
+      - task -a
     silent: true

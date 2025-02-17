@@ -32,6 +32,12 @@ tasks:
       - task: down
       - task: up
 
+  ps:
+    dir: "{{ .USER_WORKING_DIR }}"
+    desc: Show running containers.
+    cmds:
+      - docker compose ps
+
   update:
     dir: "{{ .USER_WORKING_DIR }}"
     desc: Pull new Docker images corresponding to the service containers, then restart all containers.
