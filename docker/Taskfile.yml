@@ -1,9 +1,10 @@
-version: '3'
+version: "3"
 
 tasks:
   prune:
     desc: Clean docker system and volumes
     cmds:
+      - task: prune:running
       - task: prune:system
       - task: prune:volumes
 
@@ -12,12 +13,25 @@ tasks:
     prompt: This will remove all unused local volumes. Do you want to continue?
     cmds:
       - docker volume prune -f
-  
+
   prune:system:
     desc: Remove unused data
     prompt: This will remove all unused containers, networks and images. Do you want to continue?
     cmds:
       - docker system prune -af
+
+  prune:running:
+    desc: Stops and removes all containers
+    prompt: This will stop and remove all running containers. Do you want to continue?
+    vars:
+      containers:
+        sh: echo $(docker ps -qa)
+    preconditions:
+      - sh: test -n "$(docker ps -qa)"
+        msg: no running containers found
+    cmds:
+      - docker stop {{ .containers }}
+      - docker rm -f {{ .containers }}
 
   ssh-socket:up:
     desc: "Enables socket to remote docker via SSH tunnel"
@@ -38,7 +52,7 @@ tasks:
       - sudo ssh -t -f -L "{{ .LOCAL_DOCKER_SOCKET }}:{{ .REMOTE_DOCKER_SOCKET }}" -N {{ .SSH_HOST }} -i {{ .SSH_KEY }}
       - sudo chown root:docker "{{ .LOCAL_DOCKER_SOCKET }}"
       - sudo chmod g+rw "{{ .LOCAL_DOCKER_SOCKET }}"
-  
+
   ssh-socket:down:
     desc: "Disables the socket to remote docker via SSH tunnel"
     requires:
