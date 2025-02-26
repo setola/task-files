@@ -30,8 +30,17 @@ tasks:
     desc: Restarts project services, through docker compose.
     cmds:
       - task: build
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
       - task: down
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
       - task: up
+        vars:
+          USER_WORKING_DIR:
+            ref: .USER_WORKING_DIR
 
   ps:
     dir: "{{ .USER_WORKING_DIR }}"
