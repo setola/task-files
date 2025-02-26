@@ -88,6 +88,13 @@ tasks:
         vars:
           taskname: pull
 
+  recursive:build:
+    desc: Pulls all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: build
+
   recursive:up:
     desc: Starts all services found in this directory, through docker compose.
     cmds:
@@ -101,3 +108,10 @@ tasks:
       - task: _recursive
         vars:
           taskname: down
+
+  recursive:restart:
+    desc: Restarts all services found in this directory, through docker compose.
+    cmds:
+      - task: _recursive
+        vars:
+          taskname: restart
